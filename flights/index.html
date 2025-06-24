@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #table{
+            /* display: none; */
+        }
+
+        #table td, #table th{
+            border: 1px solid darkgray;
+        }
+
+        #table tr:hover{
+            background-color: bisque;
+        }
+    </style>
+</head>
+<body>
+    <fieldset>
+        <legend>Origin to consider:</legend>
+        <input type="checkbox" name="origin" id="Dublin" value="DUB" checked><label for="Dublin">Dublin</label><br/>
+        <input type="checkbox" name="origin" id="Cork" value="ORK"><label for="Cork">Cork</label><br/>
+        <input type="checkbox" name="origin" id="Shannon" value="SNN"><label for="Shannon">Shannon</label><br/>
+    </fieldset>
+    <fieldset>
+        <legend>Destinations to consider:</legend>
+        <input type="checkbox" name="destination" id="Biarritz" value="BIQ"><label for="Biarritz">Biarritz</label><br/>
+        <input type="checkbox" name="destination" id="Carcassonne" value="CCF"><label for="Carcassonne">Carcassonne</label><br/>
+        <input type="checkbox" name="destination" id="Grenoble" value="GNB"><label for="Grenoble">Grenoble</label><br/>
+        <input type="checkbox" name="destination" id="La Rochelle" value="LRH"><label for="La Rochelle">La Rochelle</label><br/>
+        <input type="checkbox" name="destination" id="Lourdes–Pyrenees" value="LDE"><label for="Lourdes–Pyrenees">Lourdes–Pyrenees</label><br/>
+        <input type="checkbox" name="destination" id="Marseille" value="MRS"><label for="Marseille">Marseille</label><br/>
+        <input type="checkbox" name="destination" id="Nantes" value="NTE"><label for="Nantes">Nantes</label><br/>
+        <input type="checkbox" name="destination" id="Nice" value="NCE"><label for="Nice">Nice</label><br/>
+        <input type="checkbox" name="destination" id="Nimes" value="FNI"><label for="Nimes">Nimes</label><br/>
+        <input type="checkbox" name="destination" id="Paris Beauvais" value="BVA"  checked><label for="Paris Beauvais">Paris Beauvais</label><br/>
+        <input type="checkbox" name="destination" id="Rodez" value="RDZ"><label for="Rodez">Rodez</label><br/>
+        <input type="checkbox" name="destination" id="Toulouse" value="TLS"><label for="Toulouse">Toulouse</label><br/>
+    </fieldset>
+    <label for="departureDay">Departure day:</label>
+    <input type="date" name="departureDay" id="departureDay" value="2025-06-29">
+
+    <label for="toleranceAroundDeptDate">Acceptable departure within days:</label>
+    <select name="toleranceAroundDeptDate" id="toleranceAroundDeptDate">
+        <option value=1>1</option>
+        <option value=2>2</option>
+        <option value=3 selected>3</option>
+        <option value=4>4</option>
+        <option value=5>5</option>
+        <option value=6>6</option>
+        <option value=7>7</option>
+        <option value="other">other</option>
+    </select>
+    <label for="beforeAfterBoth">Before / After:</label>
+    <select name="beforeAfterBoth" id="beforeAfterBoth">
+        <option value=-1>Before</option>
+        <option value=0 selected>Before and after</option>
+        <option value=1>After</option>
+    </select><br/>
+    <input type="button" id="checkBtn" value="Check"><br/>
+    <table id="table">
+        <thead>
+        <tr>
+        <th colspan="3">Departure</th>
+        <th colspan="3">Arrival</th>
+        <th rowspan="2">Price</th>
+        </tr>
+        <tr>
+        <th>City</th>
+        <th>Day</th>
+        <th>Time</th>
+        <th>City</th>
+        <th>Day</th>
+        <th>Time</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <script>
+
+        const TABLE = document.querySelector("table");
+        TABLE_BODY = TABLE.querySelector("tbody");
+       
+        const ORIGINS = document.querySelectorAll("input[name='origin']");
+        const DESTINATIONS = document.querySelectorAll("input[name='destination']");
+        const DEPARTURE_DATE = document.getElementById("departureDay");
+        const DEPT_DAYS_TOLERANCE = document.getElementById("toleranceAroundDeptDate");
+        
+        function choseDestination(){
+            const CHOSEN_DESTINATIONS = [];
+            DESTINATIONS.forEach(dest =>{
+                if(dest.checked==true){
+                    CHOSEN_DESTINATIONS.push(dest);
+                }
+        });
+            // console.log(CHOSEN_DESTINATIONS);
+            return CHOSEN_DESTINATIONS;
+        }
+
+       function choseOrigin(){
+            const CHOSEN_ORIGINS = [];
+            ORIGINS.forEach(orig =>{
+                if(orig.checked==true){
+                    CHOSEN_ORIGINS.push(orig);
+                }
+        });
+            // console.log(CHOSEN_ORIGINS);
+            return CHOSEN_ORIGINS;
+        }
+
+        const CHECK_BTN = document.getElementById("checkBtn");
+
+        let availableFlights = [];
+
+        let obj = {"fares":[]};
+
+        function getFlightData(originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
+            const XHTTP = new XMLHttpRequest();
+            XHTTP.onload = function() {
+                TABLE.style.display = "none";
+                TABLE_BODY.innerHTML = "";
+                if(this.responseText){
+
+                    let obj = {"origin": origin, "destination": destination, "fares":[]};
+                    let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
+                    
+                    let departDay = new Date(departureDay);
+
+                       for(let i = 0; i < fetchedFlights.length; i++){
+                        let checkedDay = new Date(fetchedFlights[i].departureDate);
+                        if(checkedDay > toleranceAroundDeptDate) break;
+                        if(checkedDay >= departDay) {
+                            if(!fetchedFlights[i].soldOut) obj.fares.push(fetchedFlights[i]);
+                        }
+                    };
+                    console.log(obj);
+                   
+                }
+
+            }
+            XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true);
+            // XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=2025-08-19&currency=EUR", true);
+            XHTTP.send();
+            console.log(availableFlights);
+            
+        }
+
+        // function getFlightData(originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
+        //     const XHTTP = new XMLHttpRequest();
+        //     XHTTP.onload = function() {
+        //         TABLE.style.display = "none";
+        //         TABLE_BODY.innerHTML = "";
+        //         if(this.responseText){
+
+        //             let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
+                    
+        //             let departDay = new Date(departureDay);
+
+        //                for(let i = 0; i < fetchedFlights.length; i++){
+        //                 let checkedDay = new Date(fetchedFlights[i].departureDate);
+        //                 if(checkedDay > toleranceAroundDeptDate) break;
+        //                 if(checkedDay >= departDay) {
+        //                     if(!fetchedFlights[i].soldOut){
+        //                         console.log(fetchedFlights[i]);
+        //                         fetchedFlights[i].origin = origin;
+        //                         fetchedFlights[i].destination = destination;
+        //                         obj.fares.push(fetchedFlights[i]);
+        //                 }
+        //             };
+        //             console.log(obj);
+        //             generateTable(obj);
+        //         }
+        //     }
+        //     XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true);
+        //     // XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=2025-08-19&currency=EUR", true);
+        //     XHTTP.send();
+        // }
+        // }
+        
+        let departuresData = () => {
+            let departureDate = DEPARTURE_DATE.value;
+            let departureDateAsDate = new Date(departureDate);
+
+            let departureAsDateWithTolerance = new Date(departureDateAsDate);
+            departureAsDateWithTolerance.setDate(departureDateAsDate.getDate() + parseInt(DEPT_DAYS_TOLERANCE.value) + 1);
+
+            let departureMonth = new Date (departureDate).getMonth();
+            const DEPARTURE_MONTH_WITH_TOLERANCE = departureAsDateWithTolerance.getMonth();
+
+           
+
+            // DEPARTURE_DATE_AS_DATE.toISOString().split("T")[0]
+            // console.log(DEPARTURE_DATE_AS_DATE.toISOString().split("T")[0]);
+            // console.log(departureAsDateWithTolerance.toISOString().split("T")[0]);
+            // console.log(DEPARTURE_DATE_AS_DATE.getMonth());
+            // console.log(departureAsDateWithTolerance.getMonth());
+         
+            do{
+
+                choseOrigin().forEach(orig => {
+                    choseDestination().forEach(dest => {
+                        getFlightData(orig.value, orig.nextElementSibling.textContent, dest.value, dest.nextElementSibling.textContent, departureDate, departureAsDateWithTolerance);
+                    });
+                });
+                departureDateAsDate.setDate(1);
+                departureDateAsDate.setMonth(departureDateAsDate.getMonth() + 1);
+                departureDate = departureDateAsDate.toISOString();
+                console.log(departureDateAsDate);
+            }while(departureDateAsDate.getMonth() <= DEPARTURE_MONTH_WITH_TOLERANCE);
+            
+        }
+
+        CHECK_BTN.addEventListener("click", departuresData);
+
+
+        function generateTable(data){
+
+            TABLE.style.display = "block";
+
+            data => data.fares.forEach(flight => {
+                        const TABLE_ROW = document.createElement("tr");
+                        let tableCell = document.createElement("td");
+                        tableCell.textContent = data.origin;
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        let departureDateTime = flight.departureDate.split("T");
+                        tableCell.textContent = departureDateTime[0];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = departureDateTime[1];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = data.destination;
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        let arrivalDateTime = flight.arrivalDate.split("T");
+                        tableCell.textContent = arrivalDateTime[0];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = arrivalDateTime[1];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = flight.price.currencySymbol + " " + flight.price.value;
+                        TABLE_ROW.appendChild(tableCell);
+                        TABLE_BODY.appendChild(TABLE_ROW);
+                        console.log(flight);
+                });
+
+        }
+
+      
+
+        
+
+    </script>
+</body>
+</html>
