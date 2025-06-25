@@ -124,6 +124,8 @@
         const DEPARTURE_DATE_FIELD = document.getElementById("departureDay");
         const DEPT_DAYS_TOLERANCE = document.getElementById("toleranceAroundDeptDate");
         const STAY_DAYS = document.getElementById("numberOfDaysOfTrip");
+
+        const MIN_STAY_TIME = 6;
         
         function choseDestination(){
             const CHOSEN_DESTINATIONS = [];
@@ -276,7 +278,9 @@
             data[0].fares.forEach(flightOut => {
                 data[1].fares.forEach(flightIn =>{
                     if(new Date(flightIn.arrivalDate) - new Date(flightOut.arrivalDate) > 0){
-                        if(new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate() <= STAY_DAYS.value){
+                        if(new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate() <= STAY_DAYS.value
+                        && new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getHours() >= parseInt(MIN_STAY_TIME)
+                    ){
                         const TABLE_ROW = document.createElement("tr");
                         let tableCell = document.createElement("td");
                         tableCell.textContent = flightOut.origin;
