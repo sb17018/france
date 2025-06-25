@@ -80,6 +80,7 @@
     <table id="table">
         <thead>
         <tr>
+        <th rowspan="3">No.</th>
         <th colspan="7">OUT</th>
         <th colspan="7">IN</th>
         <th rowspan="3">DAYS</th>
@@ -171,7 +172,7 @@
                        for(let i = 0; i < fetchedFlights.length; i++){
                         let checkedDay = new Date(fetchedFlights[i].departureDate);
                         if(checkedDay > toleranceAroundDeptDate) break;
-                        if(checkedDay >= departDay) {
+                        if(checkedDay && checkedDay >= departDay) {
 
                             fetchedFlights[i].origin = origin;
                             fetchedFlights[i].destination = destination;
@@ -274,6 +275,7 @@
         function generateTable(data){
             TABLE.style.display = "none";
             TABLE_BODY.innerHTML = "";
+            let flightNumber = 0;
 
             data[0].fares.forEach(flightOut => {
                 data[1].fares.forEach(flightIn =>{
@@ -283,6 +285,9 @@
                     ){
                         const TABLE_ROW = document.createElement("tr");
                         let tableCell = document.createElement("td");
+                        tableCell.textContent = ++flightNumber;
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
                         tableCell.textContent = flightOut.origin;
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
@@ -329,7 +334,7 @@
                         tableCell.textContent = flightIn.price.value;
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
-                        tableCell.textContent = new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate();
+                        tableCell.textContent = Math.floor(new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate());
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
                         tableCell.textContent = (parseFloat(flightOut.price.value) + parseFloat(flightIn.price.value)).toFixed(2);
