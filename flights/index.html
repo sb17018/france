@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        #table{
-            /* display: none; */
-        }
+        /* // #table{
+            display: none;
+        //}  */
 
         #table td, #table th{
             border: 1px solid darkgray;
@@ -41,9 +41,9 @@
         <input type="checkbox" name="destination" id="Toulouse" value="TLS"><label for="Toulouse">Toulouse</label><br/>
     </fieldset>
     <label for="departureDay">Departure day:</label>
-    <input type="date" name="departureDay" id="departureDay" value="2025-06-29">
+    <input type="date" name="departureDay" id="departureDay"><br/>
 
-    <label for="toleranceAroundDeptDate">Acceptable departure within days:</label>
+    <label for="toleranceAroundDeptDate">Acceptable departure within</label>
     <select name="toleranceAroundDeptDate" id="toleranceAroundDeptDate">
         <option value=1>1</option>
         <option value=2>2</option>
@@ -54,21 +54,53 @@
         <option value=7>7</option>
         <option value="other">other</option>
     </select>
+    <label for="toleranceAroundDeptDate">days</label><br/>
     <label for="beforeAfterBoth">Before / After:</label>
     <select name="beforeAfterBoth" id="beforeAfterBoth">
         <option value=-1>Before</option>
-        <option value=0 selected>Before and after</option>
-        <option value=1>After</option>
+        <option value=0>Before and after</option>
+        <option value=1 selected>After</option>
     </select><br/>
+    <label for="numberOfDaysOfTrip">Stay up to</label>
+    <select name="numberOfDaysOfTrip" id="numberOfDaysOfTrip">
+        <option value=1>1</option>
+        <option value=2>2</option>
+        <option value=3 selected>3</option>
+        <option value=4>4</option>
+        <option value=5>5</option>
+        <option value=6>6</option>
+        <option value=7>7</option>
+        <option value=5>8</option>
+        <option value=6>9</option>
+        <option value=7>10</option>
+        <option value="other">other</option>
+    </select>
+    <label for="numberOfDaysOfTrip">days</label><br/>
     <input type="button" id="checkBtn" value="Check"><br/>
     <table id="table">
         <thead>
         <tr>
-        <th colspan="3">Departure</th>
-        <th colspan="3">Arrival</th>
+        <th colspan="7">OUT</th>
+        <th colspan="7">IN</th>
+        <th rowspan="3">DAYS</th>
+        <th rowspan="3">TOTAL</th>
+        <th rowspan="3">BOOK</th>
+        </tr>
+        <tr>
+        <th colspan="3">Start</th>
+        <th colspan="3">Finish</th>
+        <th rowspan="2">Price</th>
+        <th colspan="3">Start</th>
+        <th colspan="3">Finish</th>
         <th rowspan="2">Price</th>
         </tr>
         <tr>
+        <th>City</th>
+        <th>Day</th>
+        <th>Time</th>
+        <th>City</th>
+        <th>Day</th>
+        <th>Time</th>
         <th>City</th>
         <th>Day</th>
         <th>Time</th>
@@ -89,8 +121,9 @@
        
         const ORIGINS = document.querySelectorAll("input[name='origin']");
         const DESTINATIONS = document.querySelectorAll("input[name='destination']");
-        const DEPARTURE_DATE = document.getElementById("departureDay");
+        const DEPARTURE_DATE_FIELD = document.getElementById("departureDay");
         const DEPT_DAYS_TOLERANCE = document.getElementById("toleranceAroundDeptDate");
+        const STAY_DAYS = document.getElementById("numberOfDaysOfTrip");
         
         function choseDestination(){
             const CHOSEN_DESTINATIONS = [];
@@ -118,16 +151,19 @@
 
         let availableFlights = [];
 
-        let obj = {"fares":[]};
+        
+        let objDepartures;
+        let objArrivals;
 
-        function getFlightData(originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
+        async function getFlightData(direction, originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
+
+            let myPromise = new Promise(function(resolve) {
             const XHTTP = new XMLHttpRequest();
-            XHTTP.onload = function() {
+           XHTTP.onload = function() {
                 TABLE.style.display = "none";
                 TABLE_BODY.innerHTML = "";
                 if(this.responseText){
 
-                    let obj = {"origin": origin, "destination": destination, "fares":[]};
                     let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
                     
                     let departDay = new Date(departureDay);
@@ -136,55 +172,36 @@
                         let checkedDay = new Date(fetchedFlights[i].departureDate);
                         if(checkedDay > toleranceAroundDeptDate) break;
                         if(checkedDay >= departDay) {
-                            if(!fetchedFlights[i].soldOut) obj.fares.push(fetchedFlights[i]);
+
+                            fetchedFlights[i].origin = origin;
+                            fetchedFlights[i].destination = destination;
+                            fetchedFlights[i].origin_code = originCode;
+                            fetchedFlights[i].destination_code = destinationCode;
+
+                                   if(!fetchedFlights[i].soldOut) {
+                                    if(direction == "out") objDepartures.fares.push(fetchedFlights[i]);
+                                    if(direction == "in") objArrivals.fares.push(fetchedFlights[i]);
+                                   }
                         }
                     };
-                    console.log(obj);
-                   
+                    
                 }
-
+                resolve([objDepartures, objArrivals]);
             }
             XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true);
             // XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=2025-08-19&currency=EUR", true);
             XHTTP.send();
-            console.log(availableFlights);
-            
+        });
+            console.log(await myPromise);
+            generateTable(await myPromise);
+               
         }
 
-        // function getFlightData(originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
-        //     const XHTTP = new XMLHttpRequest();
-        //     XHTTP.onload = function() {
-        //         TABLE.style.display = "none";
-        //         TABLE_BODY.innerHTML = "";
-        //         if(this.responseText){
-
-        //             let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
-                    
-        //             let departDay = new Date(departureDay);
-
-        //                for(let i = 0; i < fetchedFlights.length; i++){
-        //                 let checkedDay = new Date(fetchedFlights[i].departureDate);
-        //                 if(checkedDay > toleranceAroundDeptDate) break;
-        //                 if(checkedDay >= departDay) {
-        //                     if(!fetchedFlights[i].soldOut){
-        //                         console.log(fetchedFlights[i]);
-        //                         fetchedFlights[i].origin = origin;
-        //                         fetchedFlights[i].destination = destination;
-        //                         obj.fares.push(fetchedFlights[i]);
-        //                 }
-        //             };
-        //             console.log(obj);
-        //             generateTable(obj);
-        //         }
-        //     }
-        //     XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true);
-        //     // XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=2025-08-19&currency=EUR", true);
-        //     XHTTP.send();
-        // }
-        // }
+       
         
         let departuresData = () => {
-            let departureDate = DEPARTURE_DATE.value;
+
+            let departureDate = DEPARTURE_DATE_FIELD.value;
             let departureDateAsDate = new Date(departureDate);
 
             let departureAsDateWithTolerance = new Date(departureDateAsDate);
@@ -205,7 +222,7 @@
 
                 choseOrigin().forEach(orig => {
                     choseDestination().forEach(dest => {
-                        getFlightData(orig.value, orig.nextElementSibling.textContent, dest.value, dest.nextElementSibling.textContent, departureDate, departureAsDateWithTolerance);
+                        getFlightData("out", orig.value, orig.nextElementSibling.textContent, dest.value, dest.nextElementSibling.textContent, departureDate, departureAsDateWithTolerance);
                     });
                 });
                 departureDateAsDate.setDate(1);
@@ -213,51 +230,135 @@
                 departureDate = departureDateAsDate.toISOString();
                 console.log(departureDateAsDate);
             }while(departureDateAsDate.getMonth() <= DEPARTURE_MONTH_WITH_TOLERANCE);
-            
         }
 
-        CHECK_BTN.addEventListener("click", departuresData);
+        let returnsData = () => {
+
+            returnDateAsDate = new Date(DEPARTURE_DATE_FIELD.value);
+            returnDateAsDate.setDate(returnDateAsDate.getDate() + 1);
+            let returnDate = returnDateAsDate.toISOString();
+        
+            
+            let returnAsDateWithTolerance = new Date(returnDateAsDate);
+            returnAsDateWithTolerance.setDate(returnDateAsDate.getDate() + parseInt(STAY_DAYS.value) + parseInt(DEPT_DAYS_TOLERANCE.value) - 1);
+
+            let returnMonth = new Date (returnDateAsDate).getMonth();
+            const RETURN_MONTH_WITH_TOLERANCE = returnAsDateWithTolerance.getMonth();
+
+            console.log(DEPARTURE_DATE_FIELD.value);
+            console.log(returnDateAsDate);
+
+            // RETURN_DATE_AS_DATE.toISOString().split("T")[0]
+            // console.log(RETURN_DATE_AS_DATE.toISOString().split("T")[0]);
+            // console.log(returnAsDateWithTolerance.toISOString().split("T")[0]);
+            // console.log(RETURN_DATE_AS_DATE.getMonth());
+            // console.log(returnAsDateWithTolerance.getMonth());
+
+            do{
+                choseDestination().forEach(dest => {
+                    choseOrigin().forEach(orig => {
+                        getFlightData("in", dest.value, dest.nextElementSibling.textContent, orig.value,orig.nextElementSibling.textContent, returnDate, returnAsDateWithTolerance);
+                    });
+                });
+                returnDateAsDate.setDate(1);
+                returnDateAsDate.setMonth(returnDateAsDate.getMonth() + 1);
+                returnDate = returnDateAsDate.toISOString();
+                console.log(returnDateAsDate);
+            }while(returnDateAsDate.getMonth() <= RETURN_MONTH_WITH_TOLERANCE);
+        }
+
+
+        CHECK_BTN.addEventListener("click", () =>{
+            objDepartures = {"fares":[]};
+            objArrivals = {"fares":[]};
+            departuresData();
+            returnsData()
+        });
 
 
         function generateTable(data){
 
             TABLE.style.display = "block";
 
-            data => data.fares.forEach(flight => {
+            data[0].fares.forEach(flightOut => {
+                data[1].fares.forEach(flightIn =>{
+                    if(new Date(flightIn.arrivalDate) - new Date(flightOut.arrivalDate) > 0){
+                        if(new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate() <= STAY_DAYS.value){
                         const TABLE_ROW = document.createElement("tr");
                         let tableCell = document.createElement("td");
-                        tableCell.textContent = data.origin;
+                        tableCell.textContent = flightOut.origin;
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
-                        let departureDateTime = flight.departureDate.split("T");
+                        let departureDateTime = flightOut.departureDate.split("T");
                         tableCell.textContent = departureDateTime[0];
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
                         tableCell.textContent = departureDateTime[1];
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
-                        tableCell.textContent = data.destination;
+                        tableCell.textContent = flightOut.destination;
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
-                        let arrivalDateTime = flight.arrivalDate.split("T");
+                        let arrivalDateTime = flightOut.arrivalDate.split("T");
                         tableCell.textContent = arrivalDateTime[0];
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
                         tableCell.textContent = arrivalDateTime[1];
                         TABLE_ROW.appendChild(tableCell);
                         tableCell = document.createElement("td");
-                        tableCell.textContent = flight.price.currencySymbol + " " + flight.price.value;
+                        tableCell.textContent = flightOut.price.value;
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = flightIn.origin;
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        departureDateTime = flightIn.departureDate.split("T");
+                        tableCell.textContent = departureDateTime[0];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = departureDateTime[1];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = flightIn.destination;
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        arrivalDateTime = flightIn.arrivalDate.split("T");
+                        tableCell.textContent = arrivalDateTime[0];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = arrivalDateTime[1];
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = flightIn.price.value;
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate();
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        tableCell.textContent = (parseFloat(flightOut.price.value) + parseFloat(flightIn.price.value)).toFixed(2);
+                        TABLE_ROW.appendChild(tableCell);
+                        tableCell = document.createElement("td");
+                        let btn = document.createElement("button");
+                        btn.addEventListener("click", ()=> activateBooking(departureDateTime[0], flightOut.origin_code, flightOut.destination_code, arrivalDateTime[0], flightIn.origin_code, flightIn.destination_code));
+                        tableCell.appendChild(btn);
                         TABLE_ROW.appendChild(tableCell);
                         TABLE_BODY.appendChild(TABLE_ROW);
-                        console.log(flight);
+                        // console.log(flight);
+                        }
+                    }
                 });
+            });
+        }
+
+        function activateBooking(departureDateTime, flightOutOriginCode, flightOutDestinationCode, arrivalDateTime, flightInOriginCode, flightInDestinationCode){
+            
+    
+            window.open("https://www.ryanair.com/ie/en/trip/flights/select?adults=1&teens=0&children=0&infants=0&dateOut=" + departureDateTime + "&dateIn=&isConnectedFlight=false&discount=0&promoCode=&isReturn=false&originIata=" + flightOutOriginCode + "&destinationIata=" + flightOutDestinationCode + "&tpAdults=1&tpTeens=0&tpChildren=0&tpInfants=0&tpStartDate=" + departureDateTime + "&tpEndDate=&tpDiscount=0&tpPromoCode=&tpOriginIata=" + flightOutOriginCode + "&tpDestinationIata=" + flightOutDestinationCode);
+            // IFRAME_2.src = "https://www.ryanair.com/ie/en/trip/flights/select?adults=1&teens=0&children=0&infants=0&dateOut=" + arrivalDateTime + "&dateIn=&isConnectedFlight=false&discount=0&promoCode=&isReturn=false&originIata=" + flightInOriginCode + "&destinationIata=" + flightInDestinationCode + "&tpAdults=1&tpTeens=0&tpChildren=0&tpInfants=0&tpStartDate=" + arrivalDateTime + "&tpEndDate=&tpDiscount=0&tpPromoCode=&tpOriginIata=" + flightInOriginCode + "&tpDestinationIata=" + flightInDestinationCode;
+        
 
         }
 
-      
-
-        
-
-    </script>
+</script>
 </body>
 </html>
