@@ -160,8 +160,6 @@
             let myPromise = new Promise(function(resolve) {
             const XHTTP = new XMLHttpRequest();
            XHTTP.onload = function() {
-                TABLE.style.display = "none";
-                TABLE_BODY.innerHTML = "";
                 if(this.responseText){
 
                     let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
@@ -197,8 +195,6 @@
                
         }
 
-       
-        
         let departuresData = () => {
 
             let departureDate = DEPARTURE_DATE_FIELD.value;
@@ -210,8 +206,6 @@
             let departureMonth = new Date (departureDate).getMonth();
             const DEPARTURE_MONTH_WITH_TOLERANCE = departureAsDateWithTolerance.getMonth();
 
-           
-
             // DEPARTURE_DATE_AS_DATE.toISOString().split("T")[0]
             // console.log(DEPARTURE_DATE_AS_DATE.toISOString().split("T")[0]);
             // console.log(departureAsDateWithTolerance.toISOString().split("T")[0]);
@@ -219,7 +213,6 @@
             // console.log(departureAsDateWithTolerance.getMonth());
          
             do{
-
                 choseOrigin().forEach(orig => {
                     choseDestination().forEach(dest => {
                         getFlightData("out", orig.value, orig.nextElementSibling.textContent, dest.value, dest.nextElementSibling.textContent, departureDate, departureAsDateWithTolerance);
@@ -277,8 +270,8 @@
 
 
         function generateTable(data){
-
-            TABLE.style.display = "block";
+            TABLE.style.display = "none";
+            TABLE_BODY.innerHTML = "";
 
             data[0].fares.forEach(flightOut => {
                 data[1].fares.forEach(flightIn =>{
@@ -348,6 +341,7 @@
                     }
                 });
             });
+            TABLE.style.display = "block";
         }
 
         function activateBooking(departureDateTime, flightOutOriginCode, flightOutDestinationCode, arrivalDateTime, flightInOriginCode, flightInDestinationCode){
