@@ -6,6 +6,8 @@
     <title>Document</title>
     <style>
         #calendar{
+            width: fit-content;
+            height: fit-content;
             position: relative;
             display: inline-block;
         }
@@ -14,11 +16,12 @@
             height: 100px;
             position: absolute;
             top: -100px;
-            left: 100px;
+            left: 0;
             display: inline-block;
         }
         #week-tiles-bar-wrapper{
-            top: 0;
+            top: 50px;
+            z-index: 999;
             overflow: hidden;
         }
         .tiles{
@@ -35,10 +38,10 @@
             
         }
         #week-tiles-bar{
-            height: 200px;
+            height: 100px;
             transition: top .5s;
         }
-       #week-tiles-bar.sliding-in{
+        #week-tiles-bar.sliding-in{
             top: 0;
         }
         .day-active{
@@ -49,14 +52,22 @@
             color: rgb(55, 206, 211);
         }
         .arrow-heads{
+            width: 700px;
+            height: 50px;
+            position: absolute;
+            top: 0;
+            left: 0;
             display: block;
             background-color: chartreuse;
             color: cadetblue;
         }
-        #week-tiles-bar{
+        .arrow-heads:last-child{
+            top: 150px;
+        }
+        /* #week-tiles-bar{
             width: auto;
             display: inline-block;
-        }
+        } */
         .day-active:hover, .arrow-heads:hover{
             opacity: .8;
             cursor: pointer;
@@ -91,10 +102,11 @@
 <body>
     <main>
     <div id="calendar">
-        <div id="arrowHeadLeft" class="tiles arrow-heads"><p class="arrow-head-char">&larr;</p></div>
-        <div id="week-tiles-bar-wrapper"></div>
-        <div id="week-tiles-bar"></div>
-        <div id="arrowHeadRight" class="tiles arrow-heads"><p class="arrow-head-char">&rarr;</p></div>
+        <div id="arrowHeadLeft" class="tiles arrow-heads"><p class="arrow-head-char">&uArr;<br/>PREVIOUS WEEK</p></div>
+            <div id="week-tiles-bar-wrapper">
+                <div id="week-tiles-bar"></div>
+            </div>
+        <div id="arrowHeadRight" class="tiles arrow-heads"><p class="arrow-head-char">NEXT WEEK<br/>&dArr;</p></div>
     </div>
     </main>
 
@@ -105,14 +117,14 @@
         let weekNumberFromNow = 0;
         
         const WEEK_TILES_BAR = document.getElementById("week-tiles-bar");
-        
+        console.log(WEEK_TILES_BAR);
         function renderWeek(){
             WEEK_TILES_BAR.classList.remove("sliding-in");
-            let weekToDisplay = "";
             let slide = setTimeout(()=>{
                         WEEK_TILES_BAR.classList.add("sliding-in");
                     }, 300);
 
+            let weekToDisplay = "";
             if(weekNumberFromNow < 0) weekNumberFromNow = 0;
             console.log(weekNumberFromNow);
             let currentDay = weekNumberFromNow * 7;
