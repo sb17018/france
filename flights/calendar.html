@@ -104,7 +104,7 @@
     <div id="calendar">
         <div id="arrowHeadLeft" class="tiles arrow-heads"><p class="arrow-head-char">&uArr;<br/>PREVIOUS WEEK</p></div>
             <div id="week-tiles-bar-wrapper">
-                <div id="week-tiles-bar"></div>
+                <div id="week-tiles-bar-static"></div>
             </div>
         <div id="arrowHeadRight" class="tiles arrow-heads"><p class="arrow-head-char">NEXT WEEK<br/>&dArr;</p></div>
     </div>
@@ -116,48 +116,76 @@
         
         let weekNumberFromNow = 0;
         
-        const WEEK_TILES_BAR = document.getElementById("week-tiles-bar");
-        console.log(WEEK_TILES_BAR);
-        function renderWeek(){
-            WEEK_TILES_BAR.classList.remove("sliding-in");
-            let slide = setTimeout(()=>{
-                        WEEK_TILES_BAR.classList.add("sliding-in");
-                    }, 300);
+        const WEEK_TILES_BAR_WRAPPER = document.getElementById("week-tiles-bar-wrapper");
+        const WEEK_TILES_BAR_STATIC = document.getElementById("week-tiles-bar-static");
+        console.log(WEEK_TILES_BAR_WRAPPER);
 
-            let weekToDisplay = "";
+        function renderWeek(){
+            // let weekToDisplay = '<div id="week-tiles-bar">';
             if(weekNumberFromNow < 0) weekNumberFromNow = 0;
             console.log(weekNumberFromNow);
             let currentDay = weekNumberFromNow * 7;
             let startingDay = new Date(today);
             startingDay.setDate(startingDay.getDate() - 3 + weekNumberFromNow * 7);
+            
+            const WEEK_TO_DISPLAY_DIV = document.createElement("div");
+            WEEK_TO_DISPLAY_DIV.id="week-tiles-bar";
+            WEEK_TILES_BAR_WRAPPER.appendChild(WEEK_TO_DISPLAY_DIV);
+
             for(let i = 0; i < 7; i++){
                 let startingDayName = new Intl.DateTimeFormat("pl-PL", {weekday:"long"}).format(startingDay);
                 let startingDayNumber = new Date(startingDay).getDate();
                 let startingDayMonth = new Intl.DateTimeFormat("pl-PL", {month:"long"}).format(startingDay);
                 let startingDayYear = new Date(startingDay).getFullYear();            
 
-                    weekToDisplay += '<div class="tiles day' + (currentDay == 3 ? " day-current" : "") + (currentDay >= 3 ? " day-active" : "") +'" data[date]='+ startingDay.toISOString().split("T")[0] +'>' +
-                                    '<p class="day day-name">' + startingDayName + '</p>'+
-                                    '<p class="day day-number">' + startingDayNumber + '</p>'+
-                                    '<p class="day day-month">' + startingDayMonth + '</p>'+
-                                    '<p class="day day-year">' + startingDayYear + '</p>'+
-                                    '</div>'
-                    
-                    WEEK_TILES_BAR.innerHTML = weekToDisplay;
-
+                const DAY_TO_DISPLAY_DIV = document.createElement("div");
+                DAY_TO_DISPLAY_DIV.classList.add("tiles");
+                DAY_TO_DISPLAY_DIV.classList.add("day");
+                DAY_TO_DISPLAY_DIV.classList.add(currentDay == 3 ? "day-current" : null);
+                DAY_TO_DISPLAY_DIV.classList.add(currentDay >= 3 ? "day-active" : null);
+                DAY_TO_DISPLAY_DIV.setAttribute("date", startingDay.toISOString().split("T")[0]);
+                WEEK_TO_DISPLAY_DIV.appendChild(DAY_TO_DISPLAY_DIV);
                 
+                let DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-name");
+                DAY_NAME_TO_DISPLAY_DIV.textContent = startingDayName;
+                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                
+                DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-number");
+                DAY_NAME_TO_DISPLAY_DIV.textContent = startingDayNumber;
+                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                
+                DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-month");
+                DAY_NAME_TO_DISPLAY_DIV.textContent = startingDayMonth;
+                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                
+                DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
+                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-year");
+                DAY_NAME_TO_DISPLAY_DIV.textContent =startingDayYear;
+                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                    
                 startingDay.setDate(startingDay.getDate() + 1);
                 currentDay++;
-            }   
+            }
+            setTimeout(()=>{
+                        document.getElementById("week-tiles-bar").classList.add("sliding-in");
+            }, 300);
+            // weekToDisplay += '</div>';
     }
 
     renderWeek(0);
 
-    document.getElementById("arrowHeadLeft").addEventListener("click", ()=>{WEEK_TILES_BAR.innerHTML = "";
+    document.getElementById("arrowHeadLeft").addEventListener("click", ()=>{WEEK_TILES_BAR_WRAPPER.innerHTML = "";
                                                                             --weekNumberFromNow;
                                                                             renderWeek();
                                                                             });
-    document.getElementById("arrowHeadRight").addEventListener("click", ()=>{WEEK_TILES_BAR.innerHTML = "";
+    document.getElementById("arrowHeadRight").addEventListener("click", ()=>{WEEK_TILES_BAR_WRAPPER.innerHTML = "";
                                                                             ++weekNumberFromNow;
                                                                            renderWeek();
                                                                             });
