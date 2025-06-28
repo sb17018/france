@@ -11,13 +11,20 @@
             position: relative;
             display: inline-block;
         }
-        #week-tiles-bar,  #week-tiles-bar-wrapper{
+        .to-slide-down, .to-slide-up,  #week-tiles-bar-wrapper{
             min-width: 700px;
             height: 100px;
             position: absolute;
-            top: -100px;
             left: 0;
             display: inline-block;
+        }
+        .to-slide-down{
+            top: -100px;
+            transition: top .5s;
+        }
+        .to-slide-up{
+            top: 200px;
+            transition: top .5s;
         }
         #week-tiles-bar-wrapper{
             top: 50px;
@@ -37,11 +44,7 @@
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
             
         }
-        #week-tiles-bar{
-            height: 100px;
-            transition: top .5s;
-        }
-        #week-tiles-bar.sliding-in{
+        .sliding-in{
             top: 0;
         }
         .day-active{
@@ -64,10 +67,6 @@
         .arrow-heads:last-child{
             top: 150px;
         }
-        /* #week-tiles-bar{
-            width: auto;
-            display: inline-block;
-        } */
         .day-active:hover, .arrow-heads:hover{
             opacity: .8;
             cursor: pointer;
@@ -112,24 +111,25 @@
 
     <script>
         
-        let today = new Date();
-        
         let weekNumberFromNow = 0;
         
         const WEEK_TILES_BAR_WRAPPER = document.getElementById("week-tiles-bar-wrapper");
         const WEEK_TILES_BAR_STATIC = document.getElementById("week-tiles-bar-static");
         console.log(WEEK_TILES_BAR_WRAPPER);
 
-        function renderWeek(){
-            // let weekToDisplay = '<div id="week-tiles-bar">';
-            if(weekNumberFromNow < 0) weekNumberFromNow = 0;
+        function renderWeek(previousOrNext){
+
+            if(weekNumberFromNow < 0){
+                weekNumberFromNow = 0;
+                previousOrNext = "init";
+            }
             console.log(weekNumberFromNow);
             let currentDay = weekNumberFromNow * 7;
-            let startingDay = new Date(today);
+            let startingDay = new Date();
             startingDay.setDate(startingDay.getDate() - 3 + weekNumberFromNow * 7);
             
             const WEEK_TO_DISPLAY_DIV = document.createElement("div");
-            WEEK_TO_DISPLAY_DIV.id="week-tiles-bar";
+            WEEK_TO_DISPLAY_DIV.classList.add(previousOrNext === "next" ? "to-slide-down" : "to-slide-up");
             WEEK_TILES_BAR_WRAPPER.appendChild(WEEK_TO_DISPLAY_DIV);
 
             for(let i = 0; i < 7; i++){
@@ -146,48 +146,52 @@
                 DAY_TO_DISPLAY_DIV.setAttribute("date", startingDay.toISOString().split("T")[0]);
                 WEEK_TO_DISPLAY_DIV.appendChild(DAY_TO_DISPLAY_DIV);
                 
-                let DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-name");
-                DAY_NAME_TO_DISPLAY_DIV.textContent = startingDayName;
-                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                let dayNameToDisplayDiv = document.createElement("p");
+                dayNameToDisplayDiv.classList.add("day");
+                dayNameToDisplayDiv.classList.add("day-name");
+                dayNameToDisplayDiv.textContent = startingDayName;
+                DAY_TO_DISPLAY_DIV.appendChild(dayNameToDisplayDiv);
                 
-                DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-number");
-                DAY_NAME_TO_DISPLAY_DIV.textContent = startingDayNumber;
-                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                dayNameToDisplayDiv = document.createElement("p");
+                dayNameToDisplayDiv.classList.add("day");
+                dayNameToDisplayDiv.classList.add("day-number");
+                dayNameToDisplayDiv.textContent = startingDayNumber;
+                DAY_TO_DISPLAY_DIV.appendChild(dayNameToDisplayDiv);
                 
-                DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-month");
-                DAY_NAME_TO_DISPLAY_DIV.textContent = startingDayMonth;
-                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                dayNameToDisplayDiv = document.createElement("p");
+                dayNameToDisplayDiv.classList.add("day");
+                dayNameToDisplayDiv.classList.add("day-month");
+                dayNameToDisplayDiv.textContent = startingDayMonth;
+                DAY_TO_DISPLAY_DIV.appendChild(dayNameToDisplayDiv);
                 
-                DAY_NAME_TO_DISPLAY_DIV = document.createElement("p");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day");
-                DAY_NAME_TO_DISPLAY_DIV.classList.add("day-year");
-                DAY_NAME_TO_DISPLAY_DIV.textContent =startingDayYear;
-                DAY_TO_DISPLAY_DIV.appendChild(DAY_NAME_TO_DISPLAY_DIV);
+                dayNameToDisplayDiv = document.createElement("p");
+                dayNameToDisplayDiv.classList.add("day");
+                dayNameToDisplayDiv.classList.add("day-year");
+                dayNameToDisplayDiv.textContent =startingDayYear;
+                DAY_TO_DISPLAY_DIV.appendChild(dayNameToDisplayDiv);
                     
                 startingDay.setDate(startingDay.getDate() + 1);
                 currentDay++;
             }
+            
+            if(previousOrNext === "init") WEEK_TO_DISPLAY_DIV.classList.add("sliding-in");
             setTimeout(()=>{
-                        document.getElementById("week-tiles-bar").classList.add("sliding-in");
-            }, 300);
-            // weekToDisplay += '</div>';
+                        WEEK_TO_DISPLAY_DIV.classList.add("sliding-in");
+                        
+                        setTimeout(() => {WEEK_TILES_BAR_STATIC.innerHTML = WEEK_TO_DISPLAY_DIV.innerHTML;
+                                     WEEK_TO_DISPLAY_DIV.remove()}, 500);
+            }, 100);
     }
 
-    renderWeek(0);
+    renderWeek("init");
 
-    document.getElementById("arrowHeadLeft").addEventListener("click", ()=>{WEEK_TILES_BAR_WRAPPER.innerHTML = "";
+    document.getElementById("arrowHeadLeft").addEventListener("click", ()=>{
                                                                             --weekNumberFromNow;
-                                                                            renderWeek();
+                                                                            renderWeek("previous");
                                                                             });
-    document.getElementById("arrowHeadRight").addEventListener("click", ()=>{WEEK_TILES_BAR_WRAPPER.innerHTML = "";
+    document.getElementById("arrowHeadRight").addEventListener("click", ()=>{
                                                                             ++weekNumberFromNow;
-                                                                           renderWeek();
+                                                                           renderWeek("next");
                                                                             });
 
     </script>
