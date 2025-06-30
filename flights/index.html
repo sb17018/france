@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        /* // #table{
-            display: none;
-        //}  */
-
         #table td, #table th{
             border: 1px solid darkgray;
         }
@@ -41,7 +37,7 @@
         <input type="checkbox" name="destination" id="Toulouse" value="TLS"><label for="Toulouse">Toulouse</label><br/>
     </fieldset>
     <label for="departureDay">Departure day:</label>
-    <input type="date" name="departureDay" id="departureDay"><br/>
+    <input type="date" name="departureDay" id="departureDay" value="2025-06-30"><br/>
 
     <label for="toleranceAroundDeptDate">Acceptable departure within</label>
     <select name="toleranceAroundDeptDate" id="toleranceAroundDeptDate">
@@ -77,48 +73,11 @@
     </select>
     <label for="numberOfDaysOfTrip">days</label><br/>
     <input type="button" id="checkBtn" value="Check"><br/>
-    <table id="table">
-        <thead>
-        <tr>
-        <th rowspan="3">No.</th>
-        <th colspan="7">OUT</th>
-        <th colspan="7">IN</th>
-        <th rowspan="3">DAYS</th>
-        <th rowspan="3">TOTAL</th>
-        <th rowspan="3">BOOK</th>
-        </tr>
-        <tr>
-        <th colspan="3">Start</th>
-        <th colspan="3">Finish</th>
-        <th rowspan="2">Price</th>
-        <th colspan="3">Start</th>
-        <th colspan="3">Finish</th>
-        <th rowspan="2">Price</th>
-        </tr>
-        <tr>
-        <th>City</th>
-        <th>Day</th>
-        <th>Time</th>
-        <th>City</th>
-        <th>Day</th>
-        <th>Time</th>
-        <th>City</th>
-        <th>Day</th>
-        <th>Time</th>
-        <th>City</th>
-        <th>Day</th>
-        <th>Time</th>
-        </tr>
-        </thead>
-        <tbody>
-
-        </tbody>
-    </table>
+    <div id="tablePlaceholder"></div>
 
     <script>
 
-        const TABLE = document.querySelector("table");
-        TABLE_BODY = TABLE.querySelector("tbody");
+        const TABLE = document.querySelector("#tablePlaceholder");
        
         const ORIGINS = document.querySelectorAll("input[name='origin']");
         const DESTINATIONS = document.querySelectorAll("input[name='destination']");
@@ -128,239 +87,49 @@
 
         const MIN_STAY_TIME = 6;
         
-        function choseDestination(){
-            const CHOSEN_DESTINATIONS = [];
+        function chooseDestinationCodes(){
+            const chosenDestination = [];
             DESTINATIONS.forEach(dest =>{
                 if(dest.checked==true){
-                    CHOSEN_DESTINATIONS.push(dest);
+                    chosenDestination.push({'destination_code':dest.value, 'destination_name': dest.nextElementSibling.textContent});
                 }
-        });
-            // console.log(CHOSEN_DESTINATIONS);
-            return CHOSEN_DESTINATIONS;
+            });
+            return chosenDestination;
         }
 
-       function choseOrigin(){
-            const CHOSEN_ORIGINS = [];
+       function chooseOriginCodes(){
+            let chosenOrigins = [];
             ORIGINS.forEach(orig =>{
                 if(orig.checked==true){
-                    CHOSEN_ORIGINS.push(orig);
+                    chosenOrigins.push({'origin_code':orig.value, 'origin_name': orig.nextElementSibling.textContent});
                 }
         });
-            // console.log(CHOSEN_ORIGINS);
-            return CHOSEN_ORIGINS;
+            return chosenOrigins;
         }
 
         const CHECK_BTN = document.getElementById("checkBtn");
-
-        let availableFlights = [];
-
         
-        let objDepartures;
-        let objArrivals;
-
-        async function getFlightData(direction, originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
-
-            let myPromise = new Promise(function(resolve) {
+        let data = function getFlightData(){
             const XHTTP = new XMLHttpRequest();
-           XHTTP.onload = function() {
+            XHTTP.onload = async function() {
                 if(this.responseText){
-
-                    let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
-                    
-                    let departDay = new Date(departureDay);
-
-                       for(let i = 0; i < fetchedFlights.length; i++){
-                        let checkedDay = new Date(fetchedFlights[i].departureDate);
-                        if(checkedDay > toleranceAroundDeptDate) break;
-                        if(checkedDay && checkedDay >= departDay) {
-
-                            fetchedFlights[i].origin = origin;
-                            fetchedFlights[i].destination = destination;
-                            fetchedFlights[i].origin_code = originCode;
-                            fetchedFlights[i].destination_code = destinationCode;
-
-                                   if(!fetchedFlights[i].soldOut) {
-                                    if(direction == "out") objDepartures.fares.push(fetchedFlights[i]);
-                                    if(direction == "in") objArrivals.fares.push(fetchedFlights[i]);
-                                   }
-                        }
-                    };
-                    
+                    console.log(this.responseText);
+                    TABLE.innerHTML = await this.responseText;
                 }
-                resolve([objDepartures, objArrivals]);
             }
-            XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true);
-            // XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=2025-08-19&currency=EUR", true);
+            XHTTP.open("GET", "getFlight.php?originCode=" + JSON.stringify(chooseOriginCodes()) + "&destinationCode=" + JSON.stringify(chooseDestinationCodes()) + "&departureDate=" + DEPARTURE_DATE_FIELD.value + "&departureTolerance=" + DEPT_DAYS_TOLERANCE.value + "&maxDaysStay=" + STAY_DAYS.value, true);
             XHTTP.send();
-        });
-            console.log(await myPromise);
-            generateTable(await myPromise);
-               
         }
 
-        let departuresData = () => {
-
-            let departureDate = DEPARTURE_DATE_FIELD.value;
-            let departureDateAsDate = new Date(departureDate);
-
-            let departureAsDateWithTolerance = new Date(departureDateAsDate);
-            departureAsDateWithTolerance.setDate(departureDateAsDate.getDate() + parseInt(DEPT_DAYS_TOLERANCE.value) + 1);
-
-            let departureMonth = new Date (departureDate).getMonth();
-            const DEPARTURE_MONTH_WITH_TOLERANCE = departureAsDateWithTolerance.getMonth();
-
-            // DEPARTURE_DATE_AS_DATE.toISOString().split("T")[0]
-            // console.log(DEPARTURE_DATE_AS_DATE.toISOString().split("T")[0]);
-            // console.log(departureAsDateWithTolerance.toISOString().split("T")[0]);
-            // console.log(DEPARTURE_DATE_AS_DATE.getMonth());
-            // console.log(departureAsDateWithTolerance.getMonth());
-         
-            do{
-                choseOrigin().forEach(orig => {
-                    choseDestination().forEach(dest => {
-                        getFlightData("out", orig.value, orig.nextElementSibling.textContent, dest.value, dest.nextElementSibling.textContent, departureDate, departureAsDateWithTolerance);
-                    });
-                });
-                departureDateAsDate.setDate(1);
-                departureDateAsDate.setMonth(departureDateAsDate.getMonth() + 1);
-                departureDate = departureDateAsDate.toISOString();
-                console.log(departureDateAsDate);
-            }while(departureDateAsDate.getMonth() <= DEPARTURE_MONTH_WITH_TOLERANCE);
-        }
-
-        let returnsData = () => {
-
-            returnDateAsDate = new Date(DEPARTURE_DATE_FIELD.value);
-            returnDateAsDate.setDate(returnDateAsDate.getDate() + 1);
-            let returnDate = returnDateAsDate.toISOString();
-        
-            
-            let returnAsDateWithTolerance = new Date(returnDateAsDate);
-            returnAsDateWithTolerance.setDate(returnDateAsDate.getDate() + parseInt(STAY_DAYS.value) + parseInt(DEPT_DAYS_TOLERANCE.value) - 1);
-
-            let returnMonth = new Date (returnDateAsDate).getMonth();
-            const RETURN_MONTH_WITH_TOLERANCE = returnAsDateWithTolerance.getMonth();
-
-            console.log(DEPARTURE_DATE_FIELD.value);
-            console.log(returnDateAsDate);
-
-            // RETURN_DATE_AS_DATE.toISOString().split("T")[0]
-            // console.log(RETURN_DATE_AS_DATE.toISOString().split("T")[0]);
-            // console.log(returnAsDateWithTolerance.toISOString().split("T")[0]);
-            // console.log(RETURN_DATE_AS_DATE.getMonth());
-            // console.log(returnAsDateWithTolerance.getMonth());
-
-            do{
-                choseDestination().forEach(dest => {
-                    choseOrigin().forEach(orig => {
-                        getFlightData("in", dest.value, dest.nextElementSibling.textContent, orig.value,orig.nextElementSibling.textContent, returnDate, returnAsDateWithTolerance);
-                    });
-                });
-                returnDateAsDate.setDate(1);
-                returnDateAsDate.setMonth(returnDateAsDate.getMonth() + 1);
-                returnDate = returnDateAsDate.toISOString();
-                console.log(returnDateAsDate);
-            }while(returnDateAsDate.getMonth() <= RETURN_MONTH_WITH_TOLERANCE);
-        }
-
-
-        CHECK_BTN.addEventListener("click", () =>{
-            objDepartures = {"fares":[]};
-            objArrivals = {"fares":[]};
-            departuresData();
-            returnsData()
-        });
-
-
-        function generateTable(data){
-            TABLE.style.display = "none";
-            TABLE_BODY.innerHTML = "";
-            let flightNumber = 0;
-
-            data[0].fares.forEach(flightOut => {
-                data[1].fares.forEach(flightIn =>{
-                    if(new Date(flightIn.arrivalDate) - new Date(flightOut.arrivalDate) > 0){
-                        if(new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate() <= STAY_DAYS.value
-                        && new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getHours() >= parseInt(MIN_STAY_TIME)
-                    ){
-                        const TABLE_ROW = document.createElement("tr");
-                        let tableCell = document.createElement("td");
-                        tableCell.textContent = ++flightNumber;
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = flightOut.origin;
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        let departureDateTime = flightOut.departureDate.split("T");
-                        tableCell.textContent = departureDateTime[0];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = departureDateTime[1];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = flightOut.destination;
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        let arrivalDateTime = flightOut.arrivalDate.split("T");
-                        tableCell.textContent = arrivalDateTime[0];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = arrivalDateTime[1];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = flightOut.price.value;
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = flightIn.origin;
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        departureDateTime = flightIn.departureDate.split("T");
-                        tableCell.textContent = departureDateTime[0];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = departureDateTime[1];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = flightIn.destination;
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        arrivalDateTime = flightIn.arrivalDate.split("T");
-                        tableCell.textContent = arrivalDateTime[0];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = arrivalDateTime[1];
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = flightIn.price.value;
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = Math.floor(new Date(new Date(flightIn.departureDate) - new Date(flightOut.arrivalDate)).getDate());
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        tableCell.textContent = (parseFloat(flightOut.price.value) + parseFloat(flightIn.price.value)).toFixed(2);
-                        TABLE_ROW.appendChild(tableCell);
-                        tableCell = document.createElement("td");
-                        let btn = document.createElement("button");
-                        btn.addEventListener("click", ()=> activateBooking(departureDateTime[0], flightOut.origin_code, flightOut.destination_code, arrivalDateTime[0], flightIn.origin_code, flightIn.destination_code));
-                        tableCell.appendChild(btn);
-                        TABLE_ROW.appendChild(tableCell);
-                        TABLE_BODY.appendChild(TABLE_ROW);
-                        // console.log(flight);
-                        }
-                    }
-                });
-            });
-            TABLE.style.display = "block";
-        }
+        CHECK_BTN.addEventListener("click", data);
 
         function activateBooking(departureDateTime, flightOutOriginCode, flightOutDestinationCode, arrivalDateTime, flightInOriginCode, flightInDestinationCode){
-            
     
             window.open("https://www.ryanair.com/ie/en/trip/flights/select?adults=1&teens=0&children=0&infants=0&dateOut=" + departureDateTime + "&dateIn=&isConnectedFlight=false&discount=0&promoCode=&isReturn=false&originIata=" + flightOutOriginCode + "&destinationIata=" + flightOutDestinationCode + "&tpAdults=1&tpTeens=0&tpChildren=0&tpInfants=0&tpStartDate=" + departureDateTime + "&tpEndDate=&tpDiscount=0&tpPromoCode=&tpOriginIata=" + flightOutOriginCode + "&tpDestinationIata=" + flightOutDestinationCode);
             // IFRAME_2.src = "https://www.ryanair.com/ie/en/trip/flights/select?adults=1&teens=0&children=0&infants=0&dateOut=" + arrivalDateTime + "&dateIn=&isConnectedFlight=false&discount=0&promoCode=&isReturn=false&originIata=" + flightInOriginCode + "&destinationIata=" + flightInDestinationCode + "&tpAdults=1&tpTeens=0&tpChildren=0&tpInfants=0&tpStartDate=" + arrivalDateTime + "&tpEndDate=&tpDiscount=0&tpPromoCode=&tpOriginIata=" + flightInOriginCode + "&tpDestinationIata=" + flightInDestinationCode;
-        
-
         }
+
+       ;
 
 </script>
 </body>
