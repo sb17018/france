@@ -159,44 +159,72 @@
         let objArrivals;
 
         async function getFlightData(direction, originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
-
-            let myPromise = new Promise(function(resolve) {
-            const XHTTP = new XMLHttpRequest();
-           XHTTP.onload = function() {
-                if(this.responseText){
-
-                    let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
-                    
+console.log("https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR")
+            fetch("https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true)
+                .then(response =>response.json())
+                .then(result => {
+                    if(result){
+                    let fetchedFlights = result.outbound.fares;
                     let departDay = new Date(departureDay);
-
                        for(let i = 0; i < fetchedFlights.length; i++){
-                        let checkedDay = new Date(fetchedFlights[i].departureDate);
-                        if(checkedDay > toleranceAroundDeptDate) break;
-                        if(checkedDay && checkedDay >= departDay) {
-
-                            fetchedFlights[i].origin = origin;
-                            fetchedFlights[i].destination = destination;
-                            fetchedFlights[i].origin_code = originCode;
-                            fetchedFlights[i].destination_code = destinationCode;
-
-                                   if(!fetchedFlights[i].soldOut) {
-                                    if(direction == "out") objDepartures.fares.push(fetchedFlights[i]);
-                                    if(direction == "in") objArrivals.fares.push(fetchedFlights[i]);
-                                   }
+                            let checkedDay = new Date(fetchedFlights[i].departureDate);
+                            if(checkedDay > toleranceAroundDeptDate) break;
+                            if(checkedDay && checkedDay >= departDay) {
+                                fetchedFlights[i].origin = origin;
+                                fetchedFlights[i].destination = destination;
+                                fetchedFlights[i].origin_code = originCode;
+                                fetchedFlights[i].destination_code = destinationCode;
+                                    if(!fetchedFlights[i].soldOut) {
+                                        if(direction == "out") objDepartures.fares.push(fetchedFlights[i]);
+                                        if(direction == "in") objArrivals.fares.push(fetchedFlights[i]);
+                                    }
+                            }
                         }
-                    };
-                    
-                }
-                resolve([objDepartures, objArrivals]);
-            }
-            XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true);
-            // XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=2025-08-19&currency=EUR", true);
-            XHTTP.send();
-        });
-            console.log(await myPromise);
-            generateTable(await myPromise);
+                    }
+                })
+            // console.log(await myPromise);
+            // generateTable(await myPromise);
                
         }
+        // async function getFlightData(direction, originCode, origin, destinationCode, destination, departureDay, toleranceAroundDeptDate){
+
+        //     let myPromise = new Promise(function(resolve) {
+        //     const XHTTP = new XMLHttpRequest();
+        //    XHTTP.onload = function() {
+        //         if(this.responseText){
+
+        //             let fetchedFlights = JSON.parse(this.responseText).outbound.fares;
+                    
+        //             let departDay = new Date(departureDay);
+
+        //                for(let i = 0; i < fetchedFlights.length; i++){
+        //                 let checkedDay = new Date(fetchedFlights[i].departureDate);
+        //                 if(checkedDay > toleranceAroundDeptDate) break;
+        //                 if(checkedDay && checkedDay >= departDay) {
+
+        //                     fetchedFlights[i].origin = origin;
+        //                     fetchedFlights[i].destination = destination;
+        //                     fetchedFlights[i].origin_code = originCode;
+        //                     fetchedFlights[i].destination_code = destinationCode;
+
+        //                            if(!fetchedFlights[i].soldOut) {
+        //                             if(direction == "out") objDepartures.fares.push(fetchedFlights[i]);
+        //                             if(direction == "in") objArrivals.fares.push(fetchedFlights[i]);
+        //                            }
+        //                 }
+        //             };
+                    
+        //         }
+        //         resolve([objDepartures, objArrivals]);
+        //     }
+        //     XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=" + departureDay.split("T")[0] + "&currency=EUR", true);
+        //     // XHTTP.open("GET", "https://www.ryanair.com/api/farfnd/v4/oneWayFares/" + originCode + "/" + destinationCode + "/cheapestPerDay?outboundMonthOfDate=2025-08-19&currency=EUR", true);
+        //     XHTTP.send();
+        // });
+        //     console.log(await myPromise);
+        //     generateTable(await myPromise);
+               
+        // }
 
         let departuresData = () => {
 
@@ -223,7 +251,7 @@
                 });
                 departureDateAsDate.setDate(1);
                 departureDateAsDate.setMonth(departureDateAsDate.getMonth() + 1);
-                departureDate = departureDateAsDate.toISOString();
+                // departureDate = departureDateAsDate.toISOString();
                 console.log(departureDateAsDate);
             }while(departureDateAsDate.getMonth() <= DEPARTURE_MONTH_WITH_TOLERANCE);
         }
