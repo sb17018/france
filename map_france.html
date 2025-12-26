@@ -463,9 +463,9 @@ pts = pts.map(([x, y]) => {
 // 6. OUTPUT RESULTS
 // ===============================
 
-const coords = pts.map(p => p.map(v => Math.round(v))).flat().join(',');
+const coords = pts.map(p => p.map(v => Math.round(v + 200))).flat().join(',');
 
-// document.querySelector("map area").setAttribute("coords", coords);
+document.querySelector("map area").setAttribute("coords", coords);
 
 console.log("=== <area shape=\"poly\"> ===");
 console.log(`<area shape="poly" coords="${coords}">`);
