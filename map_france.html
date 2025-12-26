@@ -25,13 +25,35 @@ path.region-map:hover{
     background-color: #6a0707;
 }
 
+main {
+    position:relative;
+}
+
+  /* #map-background {
+    width:689px;
+    height:662px;
+    position:absolute;
+    left:-24px;
+    top:-20px;
+    transform: rotateZ(-3.2deg);
+  } */
+
+  #map {
+    position:absolute;
+    background-color: white;
+  }
+
 </style>
 <body>
     <main>
         <div class="col-md-8 order-md-2" style="padding:0;" id="editor">
-            <div id="map-container" style="height:auto;">
-
-                        <svg xmlns="http://www.w3.org/2000/svg" id="map" style="display:inline;position:relative;" version="1.0" viewBox="140 20 700 700" preserveAspectRatio="xMinYMin" height="660" width="700">
+            <div id="map-container" style="width:fit-content;height:auto;">
+                <div style="position:absolute;width:10px;height:10px;background-color:red;left:211.57px;top:173.1px;z-index:99999;"></div>
+                <img id="map-background" src="./img/france_physical_map.jpg" usemap="#mymap" width="689" height="662" style="width:689px;height:662px;position:absolute;left:-24px;top:-20px;transform:rotateZ(-3.2deg);"/>
+                    <map name="mymap">
+                        <area shape="poly" coords="100,100,200,100,200,200,100,200" href="https://wwww.wp.pl"/>
+                    </map>
+                        <svg xmlns="http://www.w3.org/2000/svg" id="map" style="display:inline;" version="1.0" viewBox="140 20 660 700" preserveAspectRatio="xMinYMin" height="660" width="700">
                             <g class="region-group" id="Pays-de-la-Loire_group">
                                 <!-- Region shape layer -->
                                 <g class="region-shape">
@@ -247,6 +269,210 @@ path.region-map:hover{
             G.setAttribute("transform", "translate(" + X + "," + Y + ")");
             return G;
         }
+
+ // ===============================
+// CONFIGURATION
+// ===============================
+
+// Bretagne SVG path:
+const d = `m214.86 164.99-2.16 1.66-5.42.69-1.2 1.66-3.8-2.84-4.96 3.33 1.9 2.58-3.3 4.51-4.06-2.35-6.63.23v4.74h-1.9l-.45-2.12-2.85.45-.49-5.46-2.58 2.85-2.84-1.18-5.23.5-.95 2.34-3.07.72-.49-2.61-5.42.72v1.66l-3.79.23-1.67-1.17-1.9.94-.48 2.85-6.37.22-3.34 4.02 2.85 2.12-3.8 3.11 1.18 2.12-.95 5.2 3.8.49 1.43-1.44.72.95 8.99-1.18 5.9-4.24-5.18 4.96.45 2.35 4.74-2.12-.95 3.34 5.23.22-.23 1.4-5.68-.22-4.51-1.18-5.46-2.61-3.3 3.79 4.25 1.44-.23 6.36 1.18-.94 2.61-4.02 4.97 2.84 2.38.5.95 3.79-1.44 2.57-3.07-.22h-2.84l-4.74.72-8.07.45-1.63 2.16 2.35 1.4 2.61-.22 2.13 1.9 3.07-.24 5 5.69 1.17 6.14-1.66 3.33 4.96.95 5.46-.26 1.17-2.13-2.12-2.84 2.12.95 2.16-.23 3.8 2.12 2.34-.45v-4.06l.95 4.06 3.07 4.96 6.63.46.27-1.4 1.63 2.35 4.05.72h3.07l2.85 4.5 3.79.95 1.4-2.12-.68 2.58 3.3 1.44 4.28 4.24 1.4 2.62-.46 3.07-.49 3.1 2.84 2.13 1.44-1.67-1.44-1.9v-4.24l2.85.68.94-2.84.72 1.67 3.07 2.61 1.44-2.38-1.44-3.3 2.62 3.56 3.3-.5-.68-1.66 3.07.72 2.35 2.84-1.18 1.9-3.07-.95-3.56-1.67-1.9 2.4 2.84.94 2.13 3.3 12.8-1.18 3.3.72-1.62 1.4.22 2.16.46.34 1.02-.18 2.12-2.13 1.4 1.63h3.8l4.5-2.35 6.64-2.61.23-6.63 6.17-3.3 14.67-.72.95-2.62 2.39-2.35 5.19-.72.23-2.61 3.56.5 2.12 2.83 4.78 1.18.9-1.9 1.22-4.28 3.07-7.58 1.67-.95 4.01.5v-6.41l-1.66-1.67v-6.86l-.72-2.35v-3.79l2.38-2.39v-4.73l-1.17-.95.23-6.63-1.9-.95h-2.84l-2.39-1.9-2.58 3.07-2.12.27-1.9 2.58-1.89-.46-4.05-3.56-1.4-4.51-.73-3h-11.63l-4.28-2.61 2.84-3.79-5.69-.23-3.79 4.28-4.5-.49-.46 2.62-2.84.22-.23-3.3-2.4-.7-1.67 1.9v-4.75l-2.84 2.13-4.24-.72-1.44 2.84-8.76 4.74v2.38h-1.9v-4.28l-4.96-2.35.45-4.28-4.47-3.3v-4.02l-3.33-.72.22-3.79-2.57-.22.22-2.62H217l-.72 2.35z`;
+
+// SVG viewBox
+const vb = { x: 140, y: 20, w: 660, h: 700 };
+
+// Background image size
+const img = { w: 689, h: 662 };
+
+// Background image offset
+const offset = { x: -24, y: -20 };
+
+// Rotation
+const angleDeg = -3.2;
+const angle = angleDeg * Math.PI / 180;
+const cx = img.w / 2;
+const cy = img.h / 2;
+
+// Simplification tolerance (B1)
+const tolerance = 0.8;
+
+
+// ===============================
+// 1. PARSE SVG PATH → ABSOLUTE POINTS
+// ===============================
+
+function parsePath(d) {
+    const commands = d.match(/[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/g);
+    let i = 0;
+    let cmd = null;
+    let x = 0, y = 0;
+    const pts = [];
+
+    function readNum() {
+        return parseFloat(commands[i++]);
+    }
+
+    while (i < commands.length) {
+        const token = commands[i];
+
+        if (/[a-zA-Z]/.test(token)) {
+            cmd = token;
+            i++;
+            continue;
+        }
+
+        switch (cmd) {
+            case 'm': {
+                x += readNum();
+                y += readNum();
+                pts.push([x, y]);
+                cmd = 'l';
+                break;
+            }
+            case 'M': {
+                x = readNum();
+                y = readNum();
+                pts.push([x, y]);
+                cmd = 'L';
+                break;
+            }
+            case 'l': {
+                x += readNum();
+                y += readNum();
+                pts.push([x, y]);
+                break;
+            }
+            case 'L': {
+                x = readNum();
+                y = readNum();
+                pts.push([x, y]);
+                break;
+            }
+            case 'h': {
+                x += readNum();
+                pts.push([x, y]);
+                break;
+            }
+            case 'H': {
+                x = readNum();
+                pts.push([x, y]);
+                break;
+            }
+            case 'v': {
+                y += readNum();
+                pts.push([x, y]);
+                break;
+            }
+            case 'V': {
+                y = readNum();
+                pts.push([x, y]);
+                break;
+            }
+            case 'z':
+            case 'Z': {
+                // close path: connect to first point
+                pts.push(pts[0]);
+                break;
+            }
+            default:
+                console.warn("Unhandled command:", cmd);
+                i++;
+        }
+    }
+
+    return pts;
+}
+
+
+let pts = parsePath(d);
+
+
+// ===============================
+// 2. SIMPLIFY POLYGON (RDP)
+// ===============================
+
+function simplify(points, tol) {
+    function dist(a, b, p) {
+        const x = p[0], y = p[1];
+        const x1 = a[0], y1 = a[1];
+        const x2 = b[0], y2 = b[1];
+        const A = x - x1, B = y - y1, C = x2 - x1, D = y2 - y1;
+        const dot = A * C + B * D;
+        const len = C * C + D * D;
+        let t = dot / len;
+        t = Math.max(0, Math.min(1, t));
+        const px = x1 + t * C;
+        const py = y1 + t * D;
+        return Math.hypot(px - x, py - y);
+    }
+
+    function rdp(pts) {
+        if (pts.length <= 2) return pts;
+        let maxDist = 0, idx = 0;
+        for (let i = 1; i < pts.length - 1; i++) {
+            const d = dist(pts[0], pts[pts.length - 1], pts[i]);
+            if (d > maxDist) { maxDist = d; idx = i; }
+        }
+        if (maxDist > tol) {
+            const left = rdp(pts.slice(0, idx + 1));
+            const right = rdp(pts.slice(idx));
+            return left.slice(0, -1).concat(right);
+        }
+        return [pts[0], pts[pts.length - 1]];
+    }
+
+    return rdp(points);
+}
+
+pts = simplify(pts, tolerance);
+
+
+// ===============================
+// 3. SCALE FROM SVG → IMAGE
+// ===============================
+
+const scaleX = img.w / vb.w;
+const scaleY = img.h / vb.h;
+
+pts = pts.map(([x, y]) => [
+    (x - vb.x) * scaleX,
+    (y - vb.y) * scaleY
+]);
+
+
+// ===============================
+// 4. APPLY OFFSET
+// ===============================
+
+pts = pts.map(([x, y]) => [x + offset.x, y + offset.y]);
+
+
+// ===============================
+// 5. ROTATE AROUND CENTER
+// ===============================
+
+pts = pts.map(([x, y]) => {
+    const dx = x - cx;
+    const dy = y - cy;
+    const xr = dx * Math.cos(angle) - dy * Math.sin(angle) + cx;
+    const yr = dx * Math.sin(angle) + dy * Math.cos(angle) + cy;
+    return [xr, yr];
+});
+
+
+// ===============================
+// 6. OUTPUT RESULTS
+// ===============================
+
+const coords = pts.map(p => p.map(v => Math.round(v))).flat().join(',');
+
+// document.querySelector("map area").setAttribute("coords", coords);
+
+console.log("=== <area shape=\"poly\"> ===");
+console.log(`<area shape="poly" coords="${coords}">`);
+
+console.log("\n=== POINTS (one per line) ===");
+pts.forEach(p => console.log(`${Math.round(p[0])}, ${Math.round(p[1])}`));
+
     </script>
 </body>
 </html>
