@@ -59,8 +59,8 @@ const COORDINATES = [
         iata: "NTE",
         latitude:{direction:"n",degree:47,minute:13,second:5,"total-seconds":169985},
         longitude:{direction:"w",degree:1,minute:33,second:10,"total-seconds":5590},
-        x: 280,
-        y: 260
+        x: 351.57,
+        y: 193.1
     }},
     {"Nice": {
         region: "Provence-Alpes-Côte-d-Azur",
